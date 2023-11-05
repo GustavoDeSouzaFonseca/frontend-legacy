@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import Header from '../../components/Header';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 function CadastraEmpresa() {
   const [nome, setNome] = useState('');
@@ -28,9 +27,9 @@ function CadastraEmpresa() {
 
     try {
       axios.post("http://localhost:8080/clientes", body)
-      .then(async (response) => {
+      .then((response) => {
         if(response.status === 200) {
-          await toast.success('Empresa criada com sucesso!', {
+          toast.success('Empresa criada com sucesso!', {
             position: "bottom-left",
             autoClose: 5000,
             hideProgressBar: false,
@@ -66,7 +65,8 @@ function CadastraEmpresa() {
         }
       })
       .catch((err) => {
-         toast.error("Erro interno do servidor", {
+        console.log("errou")
+        return(toast.error("Erro interno do servidor", {
           position: "bottom-left",
           autoClose: 5000,
           hideProgressBar: false,
@@ -75,11 +75,10 @@ function CadastraEmpresa() {
           draggable: true,
           progress: undefined,
           theme: "colored",
-        });
-        return;
+        }));
       })
     } catch (error) {
-      toast.error(error, {
+      toast.error("errou", {
         position: "bottom-left",
         autoClose: 5000,
         hideProgressBar: false,
@@ -89,8 +88,38 @@ function CadastraEmpresa() {
         progress: undefined,
         theme: "colored",
       });
+      return;
     }
   }
+
+  const formatarCnpj = (cnpj) => {
+    const numeros = cnpj.replace(/\D/g, '');
+  
+    let cnpjFormatado = numeros;
+  
+    if (numeros.length > 2) {
+      cnpjFormatado = `${numeros.substring(0, 2)}.${numeros.substring(2)}`;
+    }
+  
+    if (numeros.length > 5) {
+      cnpjFormatado = `${cnpjFormatado.substring(0, 6)}.${cnpjFormatado.substring(6)}`;
+    }
+  
+    if (numeros.length > 9) {
+      cnpjFormatado = `${cnpjFormatado.substring(0, 10)}/${cnpjFormatado.substring(10)}`;
+    }
+  
+    if (numeros.length > 13) {
+      cnpjFormatado = `${cnpjFormatado.substring(0, 15)}-${cnpjFormatado.substring(15)}`;
+    }
+  
+    if (numeros.length > 14) {
+      cnpjFormatado = cnpjFormatado.substring(0, 18);
+    }
+  
+    return cnpjFormatado;
+  }
+  
 
   return (
     <div className="flex flex-col h-screen">
@@ -107,7 +136,18 @@ function CadastraEmpresa() {
                 <input className='bg-zinc-600/50 w-6/12 ml-1 p-1 h-10 rounded-md flex' type='password' placeholder='senha' value={senha} onChange={(e) => {setSenha(e.target.value)}}/>
               </div>
               <input className='bg-zinc-600/50 w-full p-1 h-10 mt-1 rounded-md flex' type='text' placeholder='empresa' value={empresa} onChange={(e) => {setEmpresa(e.target.value)}}/>
-              <input className='bg-zinc-600/50 w-full p-1 h-10 mt-1 rounded-md flex' type='text' placeholder='cnpj' value={cnpj} onChange={(e) => {setCnpj(e.target.value)}}/>
+              <input
+                className='bg-zinc-600/50 w-full p-1 h-10 mt-1 rounded-md flex'
+                type='text'
+                placeholder='cnpj'
+                value={formatarCnpj(cnpj)}
+                onChange={(e) => {
+                  const novoCnpj = e.target.value;
+                  const cnpjFormatado = formatarCnpj(novoCnpj);
+
+                  setCnpj(cnpjFormatado);
+                }}
+              />
               <div className='flex flex-row justify-between w-full'>
                 <input className='bg-zinc-600/50 w-8/12 mr-1 p-1 h-10 mt-1 rounded-md flex' type='text' placeholder='endereco' value={endereco} onChange={(e) => {setEndereco(e.target.value)}}/>
                 <input className='bg-zinc-600/50 w-4/12 ml-1 p-1 h-10 mt-1 rounded-md flex' type='text' placeholder='numero' value={numero} onChange={(e) => {setNumero(e.target.value)}}/>
