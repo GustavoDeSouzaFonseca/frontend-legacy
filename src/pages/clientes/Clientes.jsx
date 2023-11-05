@@ -17,6 +17,7 @@ function Clientes() {
   const [senha, setSenha] = useState('');
   const [empresa, setEmpresa] = useState('');
   const [cnpj, setCnpj] = useState('');
+  const [cep, setCep] = useState('');
   const [endereco, setEndereco] = useState('');
   const [numero, setNumero] = useState('');
   const [telefone, setTelefone] = useState('');
@@ -54,6 +55,7 @@ function Clientes() {
     setSenha(cliente.ds_senha);
     setEmpresa(cliente.nm_empresa);
     setCnpj(cliente.nr_cnpj);
+    setCep(cliente.nr_cep);
     setEndereco(cliente.ds_endereco);
     setNumero(cliente.nr_numero);
     setTelefone(cliente.nr_telefone);
@@ -84,6 +86,7 @@ function Clientes() {
       ds_senha: senha,
       nm_empresa: empresa,
       nr_cnpj: cnpj,
+      nr_cep: cep,
       ds_endereco: endereco,
       nr_numero: numero,
       nr_telefone: telefone,
@@ -148,6 +151,7 @@ function Clientes() {
                   <input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} className="mb-2" placeholder="Senha" />
                   <input type="text" value={empresa} onChange={(e) => setEmpresa(e.target.value)} className="mb-2" placeholder="Empresa" />
                   <input type="text" value={cnpj} onChange={(e) => setCnpj(e.target.value)} className="mb-2" placeholder="CNPJ" />
+                  <input type="text" value={cep} onChange={(e) => setCep(e.target.value)} className="mb-2" placeholder="cep" />
                   <input type="text" value={endereco} onChange={(e) => setEndereco(e.target.value)} className="mb-2" placeholder="Endereço" />
                   <input type="text" value={numero} onChange={(e) => setNumero(e.target.value)} className="mb-2" placeholder="Número" />
                   <input type="text" value={telefone} onChange={(e) => setTelefone(e.target.value)} className="mb-2" placeholder="Telefone" />
