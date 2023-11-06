@@ -120,7 +120,7 @@ function Clientes() {
       setClientesFiltrados(clientes);
     } 
     else {
-      const clientesFiltrados = clientes.filter((cliente) =>
+      const clientesFiltrados = clientes.filter((cliente) => 
         cliente.nr_cnpj.toLowerCase().includes(valorPesquisa)
       );
 
