@@ -1,7 +1,101 @@
 import React, { useState } from 'react';
 import Header from '../../components/Header';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { Link } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+export const formatarCnpj = (cnpj) => {
+  const numeros = cnpj.replace(/\D/g, '');
+
+  let cnpjFormatado = numeros;
+
+  if (numeros.length > 2) {
+    cnpjFormatado = `${numeros.substring(0, 2)}.${numeros.substring(2)}`;
+  }
+
+  if (numeros.length > 5) {
+    cnpjFormatado = `${cnpjFormatado.substring(0, 6)}.${cnpjFormatado.substring(6)}`;
+  }
+
+  if (numeros.length > 9) {
+    cnpjFormatado = `${cnpjFormatado.substring(0, 10)}/${cnpjFormatado.substring(10)}`;
+  }
+
+  if (numeros.length > 13) {
+    cnpjFormatado = `${cnpjFormatado.substring(0, 15)}-${cnpjFormatado.substring(15)}`;
+  }
+
+  if (numeros.length > 14) {
+    cnpjFormatado = cnpjFormatado.substring(0, 18);
+  }
+
+  return cnpjFormatado;
+}
+
+export const handleCepChange = async (cep, setCep, setEndereco) => {
+  const numeros = cep.replace(/\D/g, '');  
+  let cepFormatado = numeros;
+
+  if(numeros.length > 5) {
+    cepFormatado = `${cepFormatado.substring(0,5)}-${cepFormatado.substring(5)}`
+  }
+
+  if(numeros.length > 7) {
+    try {
+      const response = await axios.get(`https://viacep.com.br/ws/${cepFormatado}/json/`);
+      
+      if (response.data.erro) {
+        toast.error('CEP não encontrado', {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        });
+      } else {
+        setEndereco(response.data.logradouro);
+      }
+    } catch (error) {
+      toast.error('Erro ao buscar CEP', {
+        position: "bottom-left",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
+      return;
+    }
+  }
+
+  if(numeros.length > 8) {
+    cepFormatado.substring(0,8);
+  }
+
+  setCep(cepFormatado);
+  return cepFormatado;
+}
+
+export const formataTelefone = (tel) => {
+  const numeros = tel.replace(/\D/g, '');
+
+  let telFormatado = numeros;
+
+  if(numeros.length > 10) {
+    telFormatado = `+ 55 (${telFormatado.substring(0,2)}) ${telFormatado.substring(2,3)} ${telFormatado.substring(3,7)}-${telFormatado.substring(7,11)}`
+  }
+
+  if(numeros.length > 11) {
+    telFormatado = telFormatado.substring(0,11);
+  }
+  return telFormatado;
+}
 
 function CadastraEmpresa() {
   const [nome, setNome] = useState('');
@@ -31,7 +125,22 @@ function CadastraEmpresa() {
       axios.post("http://localhost:8080/clientes", body)
       .then((response) => {
         if(response.status === 200) {
-          toast.success('Empresa criada com sucesso!', {
+          console.log("teste");
+
+          <ToastContainer
+            position="bottom-left"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="colored"
+          />
+
+          toast.success("Empresa criada com sucesso", {
             position: "bottom-left",
             autoClose: 5000,
             hideProgressBar: false,
@@ -53,8 +162,8 @@ function CadastraEmpresa() {
           setEmail('');
 
           return;
-        } else {
-          toast.error(response.statusText, {
+        } else if (response.data.erro) {
+          toast.error(response.data.erro, {
             position: "bottom-left",
             autoClose: 5000,
             hideProgressBar: false,
@@ -64,24 +173,22 @@ function CadastraEmpresa() {
             progress: undefined,
             theme: "colored",
           });
-          return;
         }
       })
       .catch((err) => {
-        console.log("errou")
-        return(toast.error("Erro interno do servidor", {
+        toast.error('Erro interno de servidor', {
           position: "bottom-left",
           autoClose: 5000,
           hideProgressBar: false,
           closeOnClick: true,
-          pauseOnHover: false,
+          pauseOnHover: true,
           draggable: true,
           progress: undefined,
           theme: "colored",
-        }));
+        });
       })
     } catch (error) {
-      toast.error("errou", {
+      toast.error("Erro de server", {
         position: "bottom-left",
         autoClose: 5000,
         hideProgressBar: false,
@@ -93,65 +200,6 @@ function CadastraEmpresa() {
       });
       return;
     }
-  }
-
-  const formatarCnpj = (cnpj) => {
-    const numeros = cnpj.replace(/\D/g, '');
-  
-    let cnpjFormatado = numeros;
-  
-    if (numeros.length > 2) {
-      cnpjFormatado = `${numeros.substring(0, 2)}.${numeros.substring(2)}`;
-    }
-  
-    if (numeros.length > 5) {
-      cnpjFormatado = `${cnpjFormatado.substring(0, 6)}.${cnpjFormatado.substring(6)}`;
-    }
-  
-    if (numeros.length > 9) {
-      cnpjFormatado = `${cnpjFormatado.substring(0, 10)}/${cnpjFormatado.substring(10)}`;
-    }
-  
-    if (numeros.length > 13) {
-      cnpjFormatado = `${cnpjFormatado.substring(0, 15)}-${cnpjFormatado.substring(15)}`;
-    }
-  
-    if (numeros.length > 14) {
-      cnpjFormatado = cnpjFormatado.substring(0, 18);
-    }
-  
-    return cnpjFormatado;
-  }
-  
-  const formatarCep = (cep) => {
-    const numeros = cep.replace(/\D/g, '');
-
-    let cepFormatado = numeros;
-
-    if(numeros.length > 5) {
-      cepFormatado = `${cepFormatado.substring(0,5)}-${cepFormatado.substring(5)}`
-    }
-
-    if(numeros.length > 8) {
-      cepFormatado = cepFormatado.substring(0,9)
-    }
-
-    return cepFormatado;
-  }
-
-  const formataTelefone = (tel) => {
-    const numeros = tel.replace(/\D/g, '');
-
-    let telFormatado = numeros;
-
-    if(numeros.length > 10) {
-      telFormatado = `+ 55 (${telFormatado.substring(0,2)}) ${telFormatado.substring(2,3)} ${telFormatado.substring(3,7)}-${telFormatado.substring(7,11)}`
-    }
-
-    if(numeros.length > 11) {
-      telFormatado = telFormatado.substring(0,11);
-    }
-    return telFormatado;
   }
 
   return (
@@ -196,15 +244,13 @@ function CadastraEmpresa() {
                   }}
                 />
                 <input 
-                  className='bg-zinc-600/50 w-5/12 ml-1 p-1 mt-1 h-10 rounded-md flex'
-                  type='text'
-                  placeholder='cep'
-                  value={cep}
+                  className='bg-zinc-600/50 w-5/12 mr-1 p-1 h-10 mt-1 rounded-md flex' 
+                  type='text' 
+                  placeholder='cep' 
+                  value={cep} 
                   onChange={(e) => {
                     const novoCep = e.target.value;
-                    const cepFormatado = formatarCep(novoCep);
-
-                    setCep(cepFormatado);
+                    handleCepChange(novoCep, setCep, setEndereco)
                   }}
                 />
               </div>
@@ -254,8 +300,14 @@ function CadastraEmpresa() {
                   setTelefone(telFormatado)
                 }}
               />
+              <ToastContainer />
               <button className='bg-violet-500 text-white w-3/6 ml-1 h-10 mt-1 items-center justify-center rounded-md flex' onClick={handleCriaEmpresa}>Criar Empresa</button>
             </div>
+            <Link to={"/clientes"}>
+              <div className='bg-violet-500/40 text-white ml-1 h-10 mt-1 items-center justify-center rounded-md flex'>
+                voltar
+              </div>
+            </Link>
             </div>
         </div>
       </section>

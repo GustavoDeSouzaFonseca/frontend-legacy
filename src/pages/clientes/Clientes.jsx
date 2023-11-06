@@ -2,13 +2,18 @@ import React, { useEffect, useState } from 'react';
 import Header from '../../components/Header';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faSearch, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { formatarCnpj, handleCepChange, formataTelefone } from './CadastraEmpresa';
 
 function Clientes() {
   const BASE_URL = "http://localhost:8080"
 
   const [clientes, setClientes] = useState([]);
+  const [clientesFiltrados, setClientesFiltrados] = useState([]);
+  const [searchCnpj, setSearchCnpj] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [clienteToDelete, setClienteToDelete] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -23,15 +28,12 @@ function Clientes() {
   const [telefone, setTelefone] = useState('');
   const [email, setEmail] = useState('');
 
-
-
-
-
   useEffect(() => {
-    async function fetchClientes() {
+    const fetchClientes = async () => {
       try {
         const response = await axios.get(`${BASE_URL}/clientes`);
         setClientes(response.data);
+        setClientesFiltrados(response.data);
       } catch (error) {
         console.error('Erro ao buscar clientes:', error);
       }
@@ -43,7 +45,7 @@ function Clientes() {
     setClienteToDelete(clienteId);
     setShowModal(true);
   }
-  
+
   const closeModal = () => {
     setClienteToDelete(null);
     setShowModal(false);
@@ -54,20 +56,19 @@ function Clientes() {
     setNome(cliente.ds_nome);
     setSenha(cliente.ds_senha);
     setEmpresa(cliente.nm_empresa);
-    setCnpj(cliente.nr_cnpj);
-    setCep(cliente.nr_cep);
+    setCnpj(formatarCnpj(cliente.nr_cnpj)); 
+    setCep(handleCepChange(cliente.nr_cep, setCep, setEndereco));
     setEndereco(cliente.ds_endereco);
     setNumero(cliente.nr_numero);
-    setTelefone(cliente.nr_telefone);
+    setTelefone(formataTelefone(cliente.nr_telefone)); 
     setEmail(cliente.ds_email);
     setShowEditModal(true);
   }
-  
+
   const closeEditModal = () => {
     setShowEditModal(false);
   }
-  
-  
+
   const handleDelete = async (clienteId) => {
     try {
       await axios.delete(`${BASE_URL}/clientes/${clienteId}`);
@@ -79,7 +80,7 @@ function Clientes() {
     }
   }
 
-  async function handleEdit(cliente) {
+  const handleEdit = async (cliente) => {
     const editedCliente = {
       id: cliente.id,
       ds_nome: nome,
@@ -92,37 +93,78 @@ function Clientes() {
       nr_telefone: telefone,
       ds_email: email,
     };
-  
+
     try {
       await axios.put(`${BASE_URL}/clientes/${cliente.id}`, editedCliente);
       setClientes(clientes.map(c => c.id === cliente.id ? editedCliente : c));
       closeEditModal();
     } catch (error) {
-      console.error('Erro ao editar cliente:', error);
+      toast.error('Erro ao editar cliente', {
+        position: "bottom-left",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
       closeEditModal();
     }
-  }  
+  }
+
+  const handleSearchCnpj = (event) => {
+    const valorPesquisa = event.target.value.toLowerCase();
+
+    if (valorPesquisa === '') {
+      setClientesFiltrados(clientes);
+    } 
+    else {
+      const clientesFiltrados = clientes.filter((cliente) =>
+        cliente.nr_cnpj.toLowerCase().includes(valorPesquisa)
+      );
+
+      setClientesFiltrados(clientesFiltrados);
+    }
+
+    setSearchCnpj(valorPesquisa);
+  };
 
   return (
     <div className="flex flex-col h-screen">
       <Header/>
       <section className='flex-1 bg-purple-200 flex justify-center'>
-        <div className='w-5/12 h-4/6 mt-20 bg-gradient-to-r from-purple-600/30
+        <div className='w-6/12 h-4/6 mt-20 bg-gradient-to-r from-purple-600/30
           via-indigo-500/30 to-cyan-400/30 rounded-3xl flex flex-col items-center'>
           <h2 className='text-white font-mono text-xl mt-10'>Clientes</h2>
+
+          <div className='relative w- flex items-end'>
+            <input
+              className='bg-violet-500 p-1 mt-3 mb-3 rounded-md text-white pl-8'
+              placeholder='Pesquisa por CNPJ'
+              value={searchCnpj}
+              onChange={handleSearchCnpj}
+            />
+            <FontAwesomeIcon
+              icon={faSearch}
+              className='text-white absolute left-2 top-1/2 transform -translate-y-1/2'
+            />
+          </div>
           <div className='bg-zinc-600/50 w-5/6 h-10 rounded-md flex mt-15'>
-              <span className='ml-5 w-8 text-white'></span>
-              <span className='w-24 text-white ml-3'>Nome</span>
-              <span className='w-36 text-white ml-3'>Empresa</span>
-            </div>
+            <span className='ml-5 w-8 text-white'></span>
+            <span className='w-24 text-white ml-3'>Cliente</span>
+            <span className='w-36 text-white ml-3'>Empresa</span>              
+            <span className='w-40 text-white ml-3'>CNPJ</span>
+          </div>
           <ul className='w-10/12 h-5/6 mt-7 ulClientes overflow-y-auto'>
-            
-            {clientes.map(cliente => (
+
+            {clientesFiltrados.map((cliente) => (
               <div className='mt-5'>
                 <li className='bg-zinc-600/30 w-full h-8 rounded-md flex mt-15' key={cliente.id}>
                   <span className='ml-5 w-8 text-white'>{cliente.id}</span>
                   <span className='w-24 text-white truncate ml-3'>{cliente.ds_nome}</span>
                   <span className='w-36 text-white truncate ml-3'>{cliente.nm_empresa}</span>
+                  <span className='w-40 text-white truncate ml-3'>{cliente.nr_cnpj}</span>
                   <div className="flex ml-auto items-center mr-3">
                     <FontAwesomeIcon icon={faEdit} className="text-white mr-2 cursor-pointer" onClick={() => openEditModal(cliente)} />
                     <FontAwesomeIcon icon={faTrash} className="text-white cursor-pointer" onClick={() => openModal(cliente.id)}/>
@@ -151,9 +193,9 @@ function Clientes() {
                   <input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} className="mb-2" placeholder="Senha" />
                   <input type="text" value={empresa} onChange={(e) => setEmpresa(e.target.value)} className="mb-2" placeholder="Empresa" />
                   <input type="text" value={cnpj} onChange={(e) => setCnpj(e.target.value)} className="mb-2" placeholder="CNPJ" />
-                  <input type="text" value={cep} onChange={(e) => setCep(e.target.value)} className="mb-2" placeholder="cep" />
+                  <input type="text" value={cep} onChange={(e) => setCep(e.target.value)} className="mb-2" placeholder="CEP"/>
                   <input type="text" value={endereco} onChange={(e) => setEndereco(e.target.value)} className="mb-2" placeholder="Endereço" />
-                  <input type="text" value={numero} onChange={(e) => setNumero(e.target.value)} className="mb-2" placeholder="Número" />
+                  <input type="number" value={numero} onChange={(e) => setNumero(e.target.value)} className="mb-2" placeholder="Número" />
                   <input type="text" value={telefone} onChange={(e) => setTelefone(e.target.value)} className="mb-2" placeholder="Telefone" />
                   <input type="text" value={email} onChange={(e) => setEmail(e.target.value)} className="mb-2" placeholder="Email" />
                   <div className="flex justify-end">
@@ -167,8 +209,8 @@ function Clientes() {
           </ul>
 
           <Link to={"/empresa/cadastrar"}>
-            <div className='w-56 flex items-center justify-center h-[35px] rounded-2xl bg-zinc-600 mb-5 mt-3'>
-              <span className='text-white'>Criar uma nova empresa</span>
+            <div className='w-56 flex items-center justify-center h-[35px] rounded-2xl bg-violet-600/75 mb-5 mt-3'>
+              <span className='text-white'>Adicionar novo cliente</span>
             </div>
           </Link>
         </div>
